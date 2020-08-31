@@ -1,0 +1,6 @@
+CREATE DATABASE kamailio;
+
+CREATE USER kamailio WITH PASSWORD 'kamailio';
+ALTER USER kamailio WITH SUPERUSER;
+
+GRANT ALL PRIVILEGES ON DATABASE kamailio to kamailio;

@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: "kamailio-api-postgres"
+    build: ./docker/db
+    ports:
+      - "54323:5432"
+    volumes:
+      - data-volume:/usr/local/pgsql/data
+    networks:
+      - local
+  redis:
+    container_name: "kamailio-api-redis"
+    image: redis:4.0.11
+    ports:
+      - "26379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - local
+  app:
+    container_name: "kamailio-api-app"
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    ports:
+      - "3003:3000"
+      - "9449:9229"
+    volumes:
+      - .:/opt/app
+      - /opt/app/node_modules
+    networks:
+      - local
+      - kamailio
+    command: ["docker/app/start.sh"]
+    env_file:
+      - .credentials.env
+
+volumes:
+    data-volume:
+    redis-data:
+
+networks:
+  local:
+  kamailio:
+    external:
+      name: kamailio-network
