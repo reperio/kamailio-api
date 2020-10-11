@@ -14,7 +14,7 @@ module.exports = {
             host: process.env.DATABASE_HOST || 'kamailio-api-postgres',
             port: process.env.DATABASE_PORT || '5432',
             user: process.env.DATABASE_USER || 'kamailio',
-            pass: process.env.DATABASE_PASS || 'kamailio',
+            password: process.env.DATABASE_PASS || 'kamailio',
         }
     },
     redis: {
