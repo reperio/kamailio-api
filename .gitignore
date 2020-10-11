@@ -49,3 +49,7 @@ dump.rdb
 
 #Local credentials to run
 .credentials.env
+
+#linked nvmrc
+.nvm-node
+.nvm-npm
