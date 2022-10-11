@@ -60,42 +60,6 @@ module.exports = [
         }
     },
     {
-        method: 'GET',
-        path: '/v1/subscribers?username={username}&domain={domain}',
-        handler: async (request, h) => {
-            const logger = request.server.app.logger;
-            const { username, domain } = request.params;
-            logger.info(`Getting subscriber: username: ${username} domain: ${domain}`);
-            const uow = await request.app.getNewUoW();
-            const subscriber = await uow.subscribersRepository.getSubscriberByUsernameAndDomain(username, domain);
-            try {
-                try {
-                    if (!subscriber) {
-                        throw Error(`Subscriber: ${username} at ${domain} does not exist!`);
-                    }
-                } catch (err) {
-                    logger.error(err);
-                    logger.error(`Error getting subscriber with username ${username} at ${domain} `);
-                    return Boom.notFound(err.message);
-                }
-                return subscriber;
-            } catch (err) {
-                logger.error(err);
-                logger.error('Error fetching subscribers');
-                return Boom.badImplementation(`Error fetching subscriber with username ${username} at ${domain}`);
-            }
-        },
-        options: {
-            auth: false,
-            validate: {
-                params: {
-                    username: Joi.string().required(),
-                    domain: Joi.string().required()
-                }
-            }
-        }
-    },
-    {
         method: 'DELETE',
         path: '/v1/subscribers/{id}',
         handler: async (request, h) => {
