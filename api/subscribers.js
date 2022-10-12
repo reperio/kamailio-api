@@ -61,36 +61,43 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/v1/subscribers?username={username}&domain={domain}',
+        path: '/v1/subscriber',
         handler: async (request, h) => {
             const logger = request.server.app.logger;
-            const { username, domain } = request.params;
-            logger.info(`Getting subscriber: username: ${username} domain: ${domain}`);
+            const { username, domain, id } = request.params;
+            logger.info(`Getting subscriber: username: ${username} domain: ${domain} id: ${id}`);
             const uow = await request.app.getNewUoW();
-            const subscriber = await uow.subscribersRepository.getSubscriberByUsernameAndDomain(username, domain);
+            let subscriber = null;
+            if (id && id.length() > 0) {
+                subscriber = await uow.subscribersRepository.getSubscriberByUsernameAndDomain(username, domain);
+            } else if (username && username.length > 0 && domain && domain.length > 0) {
+                subscriber = await uow.subscribersRepository.getSubscriberByUsernameAndDomain(username, domain);
+            }
+           
             try {
                 try {
                     if (!subscriber) {
-                        throw Error(`Subscriber: ${username} at ${domain} does not exist!`);
+                        throw Error(`Subscriber does not exist!`);
                     }
                 } catch (err) {
                     logger.error(err);
-                    logger.error(`Error getting subscriber with username ${username} at ${domain} `);
+                    logger.error(`Error getting subscriber`);
                     return Boom.notFound(err.message);
                 }
                 return subscriber;
             } catch (err) {
                 logger.error(err);
                 logger.error('Error fetching subscribers');
-                return Boom.badImplementation(`Error fetching subscriber with username ${username} at ${domain}`);
+                return Boom.badImplementation(`Error fetching subscriber`);
             }
         },
         options: {
             auth: false,
             validate: {
                 params: {
-                    username: Joi.string().required(),
-                    domain: Joi.string().required()
+                    id: Joi.string().uuid().optional(),
+                    username: Joi.string().optional(),
+                    domain: Joi.string().optional()
                 }
             }
         }
@@ -187,6 +194,34 @@ module.exports = [
                     username: Joi.string().required(),
                     domain: Joi.string().required(),
                     password: Joi.string().optional()
+                }
+            }
+        }
+    },
+    {
+        method: 'GET',
+        path: '/v1/subscriber',
+        handler: async (request, h) => {
+            const logger = request.server.app.logger;
+            const { username, domain } = request.query;
+            logger.debug(`Fetching subscriber with username: ${username} at ${domain}`);
+
+            const uow = await request.app.getNewUoW();
+            try {
+                const subscriber = await uow.subscribersRepository.getSubscriberByUsernameAndDomain(username, domain);
+                return subscriber || null;
+            } catch (err) {
+                logger.error(err);
+                logger.error('Error fetching subscriber');
+                return Boom.badImplementation('Error fetching subscriber');
+            }
+        },
+        options: {
+            auth: false,
+            validate: {
+                query: {
+                    username: Joi.string().required(),
+                    domain: Joi.string().required()
                 }
             }
         }
