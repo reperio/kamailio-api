@@ -53,3 +53,5 @@ dump.rdb
 #linked nvmrc
 .nvm-node
 .nvm-npm
+/.vs/
+/.vs
