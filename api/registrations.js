@@ -27,15 +27,16 @@ module.exports = [
         path: '/v1/registration',
         handler: async (request, h) => {
             const logger = request.server.app.logger;
-            const { username, domain } = request.params;
+            const { username, domain } = request.query;
             logger.info(`Verifying registration status for username: ${username} domain: ${domain}`);
             const uow = await request.app.getNewUoW();
             try {
-                let isRegistered = false;
-                if (username && username.length > 0 && domain && domain.length > 0) {
-                    isRegistered = await uow.locationsRepository.isRegistered(username, domain);
+                const registration = await uow.locationsRepository.getRegistration(username, domain);
+                if (registration && typeof registration === 'object' && registration !== null) {
+                    return true;
+                } else {
+                    return false;
                 }
-                return isRegistered
             } catch (err) {
                 logger.error(err);
                 logger.error('Error fetching registration status');
@@ -45,7 +46,38 @@ module.exports = [
         options: {
             auth: false,
             validate: {
-                params: {
+                query: {
+                    username: Joi.string().optional(),
+                    domain: Joi.string().optional()
+                }
+            }
+        }
+    },
+    {
+        method: 'GET',
+        path: '/v1/registration/',
+        handler: async (request, h) => {
+            const logger = request.server.app.logger;
+            const { username, domain } = request.query;
+            logger.info(`Verifying registration status for username: ${username} domain: ${domain}`);
+            const uow = await request.app.getNewUoW();
+            try {
+                const registration = await uow.locationsRepository.getRegistration(username, domain);
+                if (registration && typeof registration === 'object' && registration !== null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (err) {
+                logger.error(err);
+                logger.error('Error fetching registration status');
+                return Boom.badImplementation('Error fetching registration status');
+            }
+        },
+        options: {
+            auth: false,
+            validate: {
+                query: {
                     username: Joi.string().optional(),
                     domain: Joi.string().optional()
                 }
@@ -73,8 +105,8 @@ module.exports = [
             auth: false,
             validate: {
                 query: {
-                    username: Joi.string().required(),
-                    domain: Joi.string().required()
+                    username: Joi.string().optional(),
+                    domain: Joi.string().optional()
                 }
             }
         }

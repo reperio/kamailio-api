@@ -64,16 +64,16 @@ module.exports = [
         path: '/v1/subscriber',
         handler: async (request, h) => {
             const logger = request.server.app.logger;
-            const { username, domain, id } = request.params;
+            const { username, domain, id } = request.query;
             logger.info(`Getting subscriber: username: ${username} domain: ${domain} id: ${id}`);
             const uow = await request.app.getNewUoW();
             let subscriber = null;
             if (id && id.length() > 0) {
-                subscriber = await uow.subscribersRepository.getSubscriberByUsernameAndDomain(username, domain);
+                subscriber = await uow.subscribersRepository.getSubscriberById(id);
             } else if (username && username.length > 0 && domain && domain.length > 0) {
                 subscriber = await uow.subscribersRepository.getSubscriberByUsernameAndDomain(username, domain);
             }
-           
+
             try {
                 try {
                     if (!subscriber) {
@@ -94,7 +94,7 @@ module.exports = [
         options: {
             auth: false,
             validate: {
-                params: {
+                query: {
                     id: Joi.string().uuid().optional(),
                     username: Joi.string().optional(),
                     domain: Joi.string().optional()
@@ -194,34 +194,6 @@ module.exports = [
                     username: Joi.string().required(),
                     domain: Joi.string().required(),
                     password: Joi.string().optional()
-                }
-            }
-        }
-    },
-    {
-        method: 'GET',
-        path: '/v1/subscriber',
-        handler: async (request, h) => {
-            const logger = request.server.app.logger;
-            const { username, domain } = request.query;
-            logger.debug(`Fetching subscriber with username: ${username} at ${domain}`);
-
-            const uow = await request.app.getNewUoW();
-            try {
-                const subscriber = await uow.subscribersRepository.getSubscriberByUsernameAndDomain(username, domain);
-                return subscriber || null;
-            } catch (err) {
-                logger.error(err);
-                logger.error('Error fetching subscriber');
-                return Boom.badImplementation('Error fetching subscriber');
-            }
-        },
-        options: {
-            auth: false,
-            validate: {
-                query: {
-                    username: Joi.string().required(),
-                    domain: Joi.string().required()
                 }
             }
         }
