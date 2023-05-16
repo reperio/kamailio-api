@@ -52,7 +52,7 @@ class SubscribersRepository {
                 });
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error('Failed to get subscriber by username and domain');
+            this.uow._logger.error(`Failed to get subscriber by username (${username}) and domain (${domain})`);
         }
     }
 
